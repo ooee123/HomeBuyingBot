@@ -5,7 +5,7 @@ import collections
 import urllib.request
 import lxml.html
 import json
-import sqlite3
+from DBC import DBC
 
 #from plot import plot
 
@@ -13,48 +13,19 @@ USER_AGENT = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) G
 
 class HomeBuyingBot:
 
-    def __init__(self, token, chatroom, config):
-        self.chatroom = chatroom
-        self.dbc = sqlite3.connect('HomeBuying.{}.db'.format(chatroom), check_same_thread=False)
-        cursor = self.dbc.cursor()
-        cursor.executescript(open('sdl.sql', 'r').read())
-        self.dbc.commit()
+    def __init__(self, token, chatroom):
+        self.dbc = DBC(chatroom)
 
     def url(self, bot, update):
-        user_id = update.message.from_user.id
-        name = update.message.from_user.name
+        user = update.message.from_user
+        name = user.name
         url = self.getUrl(update)
-        self.addUser(bot, update)
-        self.addListing(url)
-        self.addListingUserRelation(user_id, url)
-        return
+        self.dbc.addUser(user)
         doc = self.getXmlDocument(url)
         elements = doc.xpath("//div[contains(@class, 'HomeMainStats')]")[0].find('script')
         homeMainStats = json.loads((elements.text))
-        print(homeMainStats['name'])
-        print(homeMainStats['offers']['price'])
-        print(homeMainStats['offers']['url'])
-
-    def addUser(self, bot, update):
-        user = update.message.from_user
-        cursor = self.dbc.cursor()
-        cursor.execute("INSERT INTO Users VALUES (:id, :name) ON CONFLICT DO NOTHING", {"id": user.id, "name": user.first_name})
-        self.dbc.commit()
-
-    def addListing(self, url):
-        cursor = self.dbc.cursor()
-        cursor.execute("INSERT INTO Listings VALUES (:url, :price) ON CONFLICT DO NOTHING", {"url": url, "price": 0})
-        self.dbc.commit()
-
-    def addListingUserRelation(self, user_id, url):
-        cursor = self.dbc.cursor()
-        cursor.execute("INSERT INTO ListingUserRelation VALUES (:url, :user, datetime('now')) ON CONFLICT DO NOTHING", {"url": url, "user": user_id})
-        self.dbc.commit()
-
-    def getListings(self, user_id):
-        cursor = self.dbc.cursor()
-        cursor.execute("SELECT * FROM Listings WHERE user = :user", {"user": user_id})
-        return cursor.fetchall()
+        self.dbc.addListing(url, elements.text, homeMainStats['offers']['price'])
+        self.dbc.addListingUserRelation(user, url)
 
     def getUrl(self, update):
         urlEntities = [entity for entity in update['message']['entities'] if entity['type'] == 'url'][0]

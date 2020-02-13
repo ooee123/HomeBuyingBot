@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS Users (
 
 CREATE TABLE IF NOT EXISTS Listings (
     url TEXT PRIMARY KEY,
+    homeMainStats   BLOB,
     price INTEGER
 );
 

@@ -9,7 +9,6 @@ from telegram.ext import MessageHandler
 from telegram.ext import CommandHandler
 
 from HomeBuyingBot import HomeBuyingBot
-from Config import Config
 
 import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -20,8 +19,7 @@ def main():
         sys.exit(-1)
     token = sys.argv[1]
     chatroom = int(sys.argv[2])
-    config = Config("{chatroom}.HomeBuyingBot.cfg.json".format(chatroom=chatroom))
-    homeBuyingBot = HomeBuyingBot(token, chatroom, config)
+    homeBuyingBot = HomeBuyingBot(token, chatroom)
 
     updater = Updater(token=token)
     dispatcher = updater.dispatcher
