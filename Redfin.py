@@ -21,7 +21,7 @@ class RedfinExtractor:
                     key = tableRow[0].text
                     value = tableRow[1].text
                     if key == 'Lot Size':
-                        value = int(self.convertToNumber(value.split()[0]))
+                        value = self.convertToNumber(value.split()[0])
                     factsTable[key] = value
                 except:
                     pass
@@ -38,7 +38,7 @@ class RedfinExtractor:
                     key = keyDetail[0].text
                     value = keyDetail[1].text
                     if key == 'Lot Size':
-                        value = int(self.convertToNumber(value.split()[0]))
+                        value = self.convertToNumber(value.split()[0])
                     keyDetails[key] = value
                 except:
                     pass
@@ -91,28 +91,28 @@ class RedfinExtractor:
         return self.topStats.get('geo', {}).get('longitude')
 
     def getLotSize(self):
-        return self.factsTable.get('Lot Size')
+        return self.convertToNumber(self.factsTable.get('Lot Size'))
 
     def getPropertyType(self):
         return self.keyDetails.get('Property Type')
 
     def getSquareFeet(self):
-        return self.homeMainStats.get('squareFeet')
+        return self.convertToNumber(self.homeMainStats.get('squareFeet'))
 
     def getStyle(self):
         return self.factsTable.get('Style')
 
     def getStories(self):
-        return self.factsTable.get('Stories')
+        return self.convertToNumber(self.factsTable.get('Stories'))
 
     def getBeds(self):
-        return self.factsTable.get('Beds')
+        return self.convertToNumber(self.factsTable.get('Beds'))
 
     def getBaths(self):
-        return self.factsTable.get('Baths')
+        return self.convertToNumber(self.factsTable.get('Baths'))
 
     def getYearBuilt(self):
-        return self.factsTable.get('Year Built')
+        return self.convertToNumber(self.factsTable.get('Year Built'))
 
     def getPrice(self):
         return self.homeMainStatsJson.get('offers', {}).get('price')
@@ -127,6 +127,8 @@ class RedfinExtractor:
         return text
 
     def convertToNumber(self, value):
+        if value is None:
+            return None
         value = re.sub("[^0-9\.]", "", value)
         if value == "":
             return None
