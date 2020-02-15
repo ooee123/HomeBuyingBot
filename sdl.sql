@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS Listings (
     zip_code        TEXT,
     latitude        REAL,
     longitude       REAL,
-    lot_size        TEXT,
+    lot_size        INTEGER,
     property_type   TEXT
 );
 
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS ResidentialDetails (
     url             TEXT NOT NULL,
     square_feet     INTEGER,
     style           TEXT,
-    stories         INTEGER,
+    stories         REAL,
     beds            INTEGER,
     baths           REAL,
     year_built      INTEGER,
@@ -26,10 +26,10 @@ CREATE TABLE IF NOT EXISTS ResidentialDetails (
 );
 
 
-CREATE TABLE IF NOT EXISTS Offers (
+CREATE TABLE IF NOT EXISTS Prices (
     url         TEXT NOT NULL,
     lookup_date TEXT NOT NULL,
-    price       INTEGER,
+    price       INTEGER NOT NULL,
     FOREIGN KEY(url) REFERENCES Listings(url),
     PRIMARY KEY(url, lookup_date)
 );

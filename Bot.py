@@ -25,10 +25,12 @@ def main():
     dispatcher = updater.dispatcher
 
     url_handler = MessageHandler(Filters.entity(MessageEntity.URL), homeBuyingBot.url)
-    command_handler = CommandHandler('leaderboard', homeBuyingBot.getLeaderboard)
+    leaderboard_handler = CommandHandler('leaderboard', homeBuyingBot.getLeaderboard)
+    favoriteCommunity_handler = CommandHandler('favoriteCommunity', homeBuyingBot.getFavoriteCommunity)
 
     dispatcher.add_handler(url_handler)
-    dispatcher.add_handler(command_handler)
+    dispatcher.add_handler(leaderboard_handler)
+    dispatcher.add_handler(favoriteCommunity_handler)
 
     dispatcher.add_error_handler(print_error_callback)
 

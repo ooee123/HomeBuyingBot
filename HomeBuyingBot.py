@@ -31,8 +31,10 @@ class HomeBuyingBot:
 
     def saveListing(self, url, extractor):
         self.dbc.addListing(url, extractor.getCommunity(), extractor.getAddress(), extractor.getZipCode(), extractor.getLatitude(), extractor.getLongitude(), extractor.getLotSize(), extractor.getPropertyType())
-        if extractor.getPropertyType() == 'Residential':
-            self.dbc.addResidentialDetails(url, extractor.getSquareFeet(), extractor.getStyle(), extractor.getStories(), extractor.getBeds(), extractor.getBaths(), extractor.getYearBuilt())
+        if extractor.getPrice() is not None:
+            self.dbc.addOffer(url, extractor.getPrice())
+        #if extractor.getPropertyType() == 'Residential':
+        self.dbc.addResidentialDetails(url, extractor.getSquareFeet(), extractor.getStyle(), extractor.getStories(), extractor.getBeds(), extractor.getBaths(), extractor.getYearBuilt())
 
     def getUrl(self, update):
         urlEntities = [entity for entity in update['message']['entities'] if entity['type'] == 'url'][0]
@@ -49,12 +51,16 @@ class HomeBuyingBot:
     def getXmlDocument(self, url):
         request = urllib.request.Request(url, headers=USER_AGENT)
         contents = urllib.request.urlopen(request).read().decode('utf-8', 'ignore')
-        #contents = open('contents', 'r').read()
         return lxml.html.document_fromstring(contents)
 
     def getLeaderboard(self, bot, update):
         listingsPerUser = self.dbc.getListingsPerUser()
         bot.sendMessage(self.chatroom, '<pre>{}</pre>'.format(str(listingsPerUser)), parse_mode='HTML')
+
+    def getFavoriteCommunity(self, bot, update):
+        user = update.message.from_user
+        favoriteCommunity = self.dbc.getFavoriteCommunity(user)
+        bot.sendMessage(self.chatroom, '<pre>{}</pre>'.format(str(favoriteCommunity)), parse_mode='HTML')
 
     def morningGraph(self, bot, update, args={}):
         days = 30

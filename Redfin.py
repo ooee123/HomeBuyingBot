@@ -10,76 +10,112 @@ class RedfinExtractor:
         self.keyDetails = self.__extractKeyDetails()
         self.homeMainStats = self.__extractHomeMainStats()
         self.homeMainStatsJson = self.__extractHomeMainStatsJson()
+        self.topStats = self.__extractTopStats()
 
     def __extractFactsTable(self):
-        factsTableXml = self.doc.xpath("//div[contains(@class, 'facts-table')]")[0]
         factsTable = {}
-        for tableRow in factsTableXml:
-            factsTable[tableRow[0].text] = tableRow[1].text
+        try:
+            factsTableXml = self.doc.xpath("//div[contains(@class, 'facts-table')]")[0]
+            for tableRow in factsTableXml:
+                try:
+                    key = tableRow[0].text
+                    value = tableRow[1].text
+                    if key == 'Lot Size':
+                        value = int(self.convertToNumber(value.split()[0]))
+                    factsTable[key] = value
+                except:
+                    pass
+        except:
+            pass
         return factsTable
 
     def __extractKeyDetails(self):
-        keyDetailsListXml = self.doc.xpath("//div[contains(@class, 'keyDetailsList')]")[0]
         keyDetails = {}
-        for keyDetail in keyDetailsListXml:
-            keyDetails[keyDetail[0].text] = keyDetail[1].text
+        try:
+            keyDetailsListXml = self.doc.xpath("//div[contains(@class, 'keyDetailsList')]")[0]
+            for keyDetail in keyDetailsListXml:
+                try:
+                    key = keyDetail[0].text
+                    value = keyDetail[1].text
+                    if key == 'Lot Size':
+                        value = int(self.convertToNumber(value.split()[0]))
+                    keyDetails[key] = value
+                except:
+                    pass
+        except:
+            pass
         return keyDetails
 
     def __extractHomeMainStatsJson(self):
-        return json.loads(self.doc.xpath("//div[contains(@class, 'HomeMainStats')]")[0].find('script').text)
+        try:
+            return json.loads(self.doc.xpath("//div[contains(@class, 'HomeMainStats')]")[0].find('script').text)
+        except:
+            return {}
 
     def __extractHomeMainStats(self):
-        divs = self.doc.xpath("//div[contains(@class, 'HomeMainStats')]")[0].findall('div')
         homeMainStats = {}
-        for div in divs:
-            label = self.getAllText(div.xpath('.//*[@class="statsLabel"]')[0])
-            value = self.convertToNumber(self.getAllText(div.xpath('.//*[@class="statsValue"]')[0]))
-            if 'sqft' in div.get('class'):
-                label = 'squareFeet'
-            homeMainStats[label] = value
+        try:
+            divs = self.doc.xpath("//div[contains(@class, 'HomeMainStats')]")[0].findall('div')
+            for div in divs:
+                try:
+                    label = self.getAllText(div.xpath('.//*[@class="statsLabel"]')[0])
+                    value = self.convertToNumber(self.getAllText(div.xpath('.//*[@class="statsValue"]')[0]))
+                    if 'sqft' in div.get('class'):
+                        label = 'squareFeet'
+                    homeMainStats[label] = value
+                except:
+                    pass
+        except:
+            pass
         return homeMainStats
 
+    def __extractTopStats(self):
+        try:
+            return json.loads(self.doc.xpath('//div[contains(@class, "top-stats")]')[0].find('script').text)
+        except:
+            return {}
+
     def getCommunity(self):
-        return self.keyDetails['Community']
+        return self.keyDetails.get('Community')
 
     def getAddress(self):
-        return self.homeMainStatsJson['name']
+        return self.topStats.get('address', {}).get('streetAddress')
 
     def getZipCode(self):
-        return self.homeMainStatsJson['address']['postalCode']
+        return self.topStats.get('address', {}).get('postalCode')
 
     def getLatitude(self):
-        return self.homeMainStatsJson['geo']['latitude']
+        return self.topStats.get('geo', {}).get('latitude')
 
     def getLongitude(self):
-        return self.homeMainStatsJson['geo']['longitude']
+        return self.topStats.get('geo', {}).get('longitude')
 
     def getLotSize(self):
-        return self.keyDetails['Lot Size']
+        return self.factsTable.get('Lot Size')
 
     def getPropertyType(self):
-        return self.keyDetails['Property Type']
+        return self.keyDetails.get('Property Type')
 
     def getSquareFeet(self):
-        return self.homeMainStats['squareFeet']
+        return self.homeMainStats.get('squareFeet')
 
     def getStyle(self):
-        return self.factsTable['Style']
+        return self.factsTable.get('Style')
 
     def getStories(self):
-        return self.factsTable['Stories']
+        return self.factsTable.get('Stories')
 
     def getBeds(self):
-        return self.factsTable['Beds']
+        return self.factsTable.get('Beds')
 
     def getBaths(self):
-        return self.factsTable['Baths']
+        return self.factsTable.get('Baths')
 
     def getYearBuilt(self):
-        return self.factsTable['Year Built']
+        return self.factsTable.get('Year Built')
 
-    def getOffer(self):
-        return
+    def getPrice(self):
+        return self.homeMainStatsJson.get('offers', {}).get('price')
 
     def getAllText(self, element):
         text = ""

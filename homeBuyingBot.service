@@ -1,0 +1,12 @@
+[Unit]
+Description=HomeBuyingBot
+After=multi-user.target
+
+[Service]
+User=pi
+Type=simple
+ExecStart=/home/pi/HomeBuyingBotProd/HomeBuyingBot/runProd.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
