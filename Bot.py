@@ -24,10 +24,11 @@ def main():
     updater = Updater(token=token)
     dispatcher = updater.dispatcher
 
-    url_handler = MessageHandler(Filters.all, homeBuyingBot.url)
-    #url_handler = MessageHandler(Filters.all, homeBuyingBot.addUserMessage)
-    #url_handler = MessageHandler(Filters.entity(MessageEntity.URL), homeBuyingBot.url)
+    url_handler = MessageHandler(Filters.entity(MessageEntity.URL), homeBuyingBot.url)
+    command_handler = CommandHandler('leaderboard', homeBuyingBot.getLeaderboard)
+
     dispatcher.add_handler(url_handler)
+    dispatcher.add_handler(command_handler)
 
     dispatcher.add_error_handler(print_error_callback)
 

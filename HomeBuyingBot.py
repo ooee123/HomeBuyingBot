@@ -4,7 +4,7 @@ import statistics
 import collections
 import urllib.request
 import lxml.html
-import json
+from Redfin import RedfinExtractor
 from DBC import DBC
 
 #from plot import plot
@@ -14,18 +14,25 @@ USER_AGENT = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) G
 class HomeBuyingBot:
 
     def __init__(self, token, chatroom):
+        self.chatroom = chatroom
         self.dbc = DBC(chatroom)
 
     def url(self, bot, update):
+        url = self.getUrl(update)
+        if not self.isRedfinUrl(url):
+            return
         user = update.message.from_user
         name = user.name
-        url = self.getUrl(update)
         self.dbc.addUser(user)
         doc = self.getXmlDocument(url)
-        elements = doc.xpath("//div[contains(@class, 'HomeMainStats')]")[0].find('script')
-        homeMainStats = json.loads((elements.text))
-        self.dbc.addListing(url, elements.text, homeMainStats['offers']['price'])
+        extractor = RedfinExtractor(doc)
+        self.saveListing(url, extractor)
         self.dbc.addListingUserRelation(user, url)
+
+    def saveListing(self, url, extractor):
+        self.dbc.addListing(url, extractor.getCommunity(), extractor.getAddress(), extractor.getZipCode(), extractor.getLatitude(), extractor.getLongitude(), extractor.getLotSize(), extractor.getPropertyType())
+        if extractor.getPropertyType() == 'Residential':
+            self.dbc.addResidentialDetails(url, extractor.getSquareFeet(), extractor.getStyle(), extractor.getStories(), extractor.getBeds(), extractor.getBaths(), extractor.getYearBuilt())
 
     def getUrl(self, update):
         urlEntities = [entity for entity in update['message']['entities'] if entity['type'] == 'url'][0]
@@ -36,10 +43,18 @@ class HomeBuyingBot:
         else:
             return url
 
+    def isRedfinUrl(self, url):
+        return url.startswith("https://www.redfin.com")
+
     def getXmlDocument(self, url):
         request = urllib.request.Request(url, headers=USER_AGENT)
         contents = urllib.request.urlopen(request).read().decode('utf-8', 'ignore')
+        #contents = open('contents', 'r').read()
         return lxml.html.document_fromstring(contents)
+
+    def getLeaderboard(self, bot, update):
+        listingsPerUser = self.dbc.getListingsPerUser()
+        bot.sendMessage(self.chatroom, '<pre>{}</pre>'.format(str(listingsPerUser)), parse_mode='HTML')
 
     def morningGraph(self, bot, update, args={}):
         days = 30
